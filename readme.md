@@ -4,7 +4,7 @@ UiNN is a neural network batched forward and backward pass implementation in [Ui
 
 Diagramatically, UiNN can run/train networks of the form:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/NN_diag.svg)
+![](img/NN_diag.svg)
 
     Where the linear and elementwise activation function are alternated (the last layer will always be a linear layer). Since this is a proof of concept, only the ReLU activation function is officially supported (however, changing the activation should be trivial as long as you update the gradient function for it as well). UiNN performs a [uniform Kaiming He style initialization](https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.kaiming_uniform_) of all parameters (weights and biases). Specifically, model weights are initialized with fan-in uniform Kaiming He, while, biases are initialized with fan-out uniform Kaiming He (*note: this assumes ReLU activation for the gain factor*). The training is performed by using batched gradiend descent (although other more advanced optimizers such as Adam could be implemented relatively easily).
 
@@ -34,13 +34,13 @@ Net[2 8 8 1]   # define a net
 
     Due to these considerations, I implemented a two pass approach for calculating the leaf gradients. The first pass computes the gradients along the backbone (this is also the path of the diameter of the tree) of the gradient tree. The second pass propagates the backbone gradients to each leaf. To understand this, let's take a look at the gradient tree and how to use it:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/gradtreediag1.svg)
+![](img/gradtreediag1.svg)
 
 Note that each operation in the tradional model view (on the left) has an equivalent representation in the gradient tree. The direction of the edges in the gradient tree tell us which way to use the chain rule to calculate the derivative. Each box representes a vector (note this will later change, however, for now it is sufficient to consider this to be a vector). Note that Y<sub>0</sub> is the input to the network and Y<sub>3</sub> is the output of the network.
 
 Now let's consider calculating the gradient along the backbone:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/gradtreediag2.svg)
+![](img/gradtreediag2.svg)
 
 ##### The Linear Layer
 
@@ -58,7 +58,7 @@ Now let's consider calculating the gradient along the backbone:
 
 ### The Leaves (Linear Layers)
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/gradtreefull.svg)
+![](img/gradtreefull.svg)
 
     Now we have all the gradients along the backbone (∂L/∂Y<sub>n</sub>), we can start calculating the gradients induced on the leaves on the trees. Notice that the only operations which have leaves (excluding the neural net input) are the linear operations. Also notice that the leaves correspond to parameters that we would like to update (the green nodes). Additionally, recall that the arrows in the gradient tree corresponds to using the chain rule. So the critical task is to find all of the jacobians.
 
@@ -74,23 +74,23 @@ Now let's consider calculating the gradient along the backbone:
 
 First, consider the 2x2 case:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/2x2_mm.svg)
+![](img/2x2_mm.svg)
 
 then, expand the y vector:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/expanded_result.svg)
+![](img/expanded_result.svg)
 
 Let's break the derivative up across components of y (this will make later computations easier):
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/partial_y_wrt_W.svg)
+![](img/partial_y_wrt_W.svg)
 
 Notice that each derivative wrt to y<sub>i</sub> only depends on W<sub>ij</sub>, where j is the index of the vector, meaning our tensor looks like stacked copies where each cross section along y<sub>i</sub> is just x<sup>T</sup> in the ith row. This is written as x<sup>T</sup> ⊗ I. Eventually we will want to calculate the update to the weight based on the upstream gradient e.g. how we should change W<sub>2</sub> based on the gradient ∂L/∂Y<sub>3</sub>. To accomplish this we need to perform a tensor contraction between the gradient and the tensor. What this looks like in practice is a weighted sum of the matricies ∂y<sub>i</sub>/∂W weighted by the ith component of the upstream gradient e.g. (∂L/∂Y<sub>3</sub>)<sub>i</sub>, or written formally:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/gradient_contraction.png)
+![](img/gradient_contraction.png)
 
 Or more visually (in the 2x2 case):
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/w_outerproduct.svg)
+![](img/w_outerproduct.svg)
 
 However, notice that this exactly corresponds to an outer product, namely the outer product: (∂L/∂y)x<sup>T</sup>. So finally, we know that the update for the weight should look like: W<sub>2</sub> += -η*(∂L/∂Y<sub>3</sub>)Y<sub>2</sub><sup>T</sup>.
 
@@ -138,7 +138,7 @@ This is a numpy like syntax where `@` denotes matrix multiplication and `.T` den
 
     As usual, as to not scare anyone off, we first start with the easier case, namely, the forward pass. The forward pass can be trivially BLASed, mainly by just replace y0 (the input vector), with a matrix. This can be done by appending the column vectors together:
 
-![](/Users/maxkhanov/Desktop/js/uinn2/img/X_colvec.png)
+![](img/X_colvec.png)
 
 Where x<sub>1</sub> denotes input 1 to the network, not the first component of the vector x and Y<sub>0</sub> is the input to the net.
 
