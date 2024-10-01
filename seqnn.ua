@@ -1,19 +1,17 @@
 MM ← ⊞(/+×)⊙⍉
 Zeros ← ×0°△
-Eye ← ⊞=.⇡
 HSum ← ⍜⍉(¤/+)
-OnesLike ← +1×0
 # arr -> arr[even idxs] arr[odd idxs]
 Unzip ← ⊃(▽|▽¬)⊢⍉⋯⇡⧻.
 
-HeInit ← ÷√⇌⊢:-1×2∵⋅⚂⊸Zeros
-HeInitb ← ÷√:HeInit⊂:1.
-InitL ← ⊟:∩□⊃(HeInitb⇌⊢)HeInit
+HeInit ← ×√6÷√⇌⊢:-1×2∵⋅⚂⊸Zeros
+HeInitb ← ×√6÷√:HeInit⊂:1.
+InitL ← ⊟∩□⊃HeInit(HeInitb⇌⊢)
 DReLU ← ≥0
 # DReLU ← ×-:1. ÷:1+1ⁿ:e¯
 
-PUb ← °□◇⊃⊢(↘1)
-LinL ← ⊂□⊙:⍜∩⍉+°□⊢°□:MM:∩°□⊙PUb⊙PUb°□⊙:⊃⊢∘
+PUb ← °(□⊂□)
+LinL ← ⊂□⊙:⍜∩⍉+°□⊢°□:MM:∩°□⍥⊙PUb2°□⊙:⊢.
 ReL ← ⊂□◇×>0.⊢.
 # ReL ← ⊂□÷:1+1ⁿ:e¯°□⊢.
 
@@ -35,7 +33,7 @@ BBGrads ← (
   ⊙≡⊢⊙:                                        # pick out all W matricies
   ⊙⊙(DReLU Unzip)                              # unzip and calculate relu derivatives
   ⊙(⍉⊟)¤□⊙(↘¯1)                                # trash first layer since we don't need to calc gradient of input
-  ⇌⊙◌⍢(⊂□ ×MM⍉:∩∩°□°□ ⊙°⊟⊙:⊓⊃⊢∘⊃(⊢|↘1)|>0⧻:⊙.) # scan with init val of the ouput gradient, each step: (grad @ W) * ReluGrad
+  ⇌⊙◌⍢(⊂□ ×MM⍉:∩∩°□ ⊙°⊟⊙:⊓⊃⊢∘⊃(⊢|↘1)|>0⧻:⊙.) # scan with init val of the ouput gradient, each step: (grad @ W) * ReluGrad
 )
 # bbgrads layerins -> dw db
 LeafGrads ← ≡(∩□⊃(MM:⍉|⋅≡HSum)∩°□°⊟)⍉⊟:
